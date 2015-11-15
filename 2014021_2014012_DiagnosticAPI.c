@@ -49,10 +49,10 @@ void print_FileList(int fileSystemId)
 			if(k)
 			{
 				substring(inode_data,entry,16*i,16); 
-				substring(file_name,entry,0,8);
-				substring(starting_block,entry,8,2);
-				substring(number_of_blocks,entry,10,2);
-				substring(file_size,entry,12,4);
+				substring(entry,file_name,0,8);
+				substring(entry,starting_block,8,2);
+				substring(entry,number_of_blocks,10,2);
+				substring(entry,file_size,12,4);
 				printf("File name : %s\n",file_name);
 				printf("Starting block of file : %s\n",starting_block);
 				printf("Number of blocks : %s\n",number_of_blocks);

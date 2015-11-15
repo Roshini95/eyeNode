@@ -32,25 +32,27 @@ int createSFS( char* filename, int nbytes){
 int readData( int disk, int blockNum, void* block)
 {
 	/*Return values :
-	-1 : Could not reach specified blockNum
-	-1 : Error reading data
+	-1 : Error in lseek()
+	-2 : Error in read()
 	 +ve number : Data read successfully
 	*/
 	int bytes_read=4*1024;
 	if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
 	if(read(disk,(char*)block,bytes_read)!=bytes_read) return -2; //4KB Data Block
+	lseek(disk,0,SEEK_SET); //Return back to starting of file
 	return bytes_read;
 }
 
 int writeData(int disk, int blockNum, void* block){
 	/*Return values :
-	-1 : Could not reach specified blockNum
-	-1 : Error writing data
-	 +ve number : Dat written successfully
+	-1 : Error in lseek()
+	-2 : Error in write()
+	 +ve number : Data written successfully
 	*/
 	 int bytes_to_write=4*1024;
 	 if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
 	 if(write(disk,(char*),bytes_to_write)!=bytes_to_write) return -2; //4KB Data Block
+	 lseek(disk,0,SEEK_SET); //Return back to starting of file
 	 return bytes_to_write;
 }
 
@@ -92,5 +94,41 @@ int writeFile(int disk, char* filename, void* block){
 }
 
 int readFile(int disk, char* filename, void* block){
-	
+	/*Return values :
+	-1 : Error in lseek()
+	-2 : Error in read()
+	 0 : Data read successfully
+	*/
+	int i,found;
+	char* name,word,*starting,*file_size,*n_blocks;
+	found=0;
+	for(i=inodeDataOffset;i<dataOffset;i+=16)
+	{
+		if(lseek(disk,i,SEEK_SET)<0) return -1;
+		if(read(disk,word,16)!=16) return -2; //4KB Data Block
+		substring(word,name,0,8); //Extract file name
+		if(!strcmp(name,filename))
+		{
+			found=1;
+			substring(word,starting,8,2);
+			substring(word,n_blocks,10,2);
+			substring(word,file_size,12,4);
+			break;
+		}
+		lseek(disk,0,SEEK_SET); //Return back to starting of file
+	}	
+	if(!found)
+	{
+		printf("File not found!\n");
+		return -3;
+	}
+	else
+	{
+		uint8_t starting_block=starting;
+		uint8_t size_in_int=file_size;
+		lseek(disk,0,SEEK_SET); //Return back to starting of file
+		if(lseek(disk,starting*4*1024,SEEK_SET)<0) return -1; //Seek to starting of file
+		if(read(disk,(char*)block,size_in_int)!=size_in_int) return -2; //Read 'size' bytes
+	}
+	return 0;
 }
