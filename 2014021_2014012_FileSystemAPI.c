@@ -58,7 +58,7 @@ int writeFile(int disk, char* filename, void* block){
 	int exists = 0;
 	int i;
 	int j = inodeBitmapOffset;
-	for (i = 0; i < inodeDataOffset; i += 16){
+	for (i = inodeDataOffset; i < dataOffset; i += 16){
 		// Check if inode is active
 		if ( lseek(disk, j, SEEK_SET) >= 0 ){
 			char tempCheck;
@@ -73,6 +73,7 @@ int writeFile(int disk, char* filename, void* block){
 					if (strcmp(fileNameCheck, filename) == 0){
 						// If space is still left for block in file, write in file
 						// Else, copy entire file to buffer, and erase this location
+
 					}
 				}
 				else{
