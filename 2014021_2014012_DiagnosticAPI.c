@@ -5,11 +5,11 @@
 /*
 	File System Offsets	in Bytes
 */
-const int superOffset = 0 * 1024; 
-const int inodeBitmapOffset =  4 * 1024; 
-const int dataBitmapOffset = 8 * 1024;
-const int inodeDataOffset = 12 * 1024;
-const int dataOffset = ( 12 + 4 * 128 ) * 1024;
+#define superOffset  0 * 1024
+#define inodeBitmapOffset   4 * 1024
+#define dataBitmapOffset  8 * 1024
+#define inodeDataOffset  12 * 1024
+#define dataOffset  ( 12 + 4 * 128 ) * 1024
 
 void print_inodeBitmaps(int fileSystemId)
 {

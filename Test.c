@@ -10,7 +10,7 @@ void main()
 	if(file_descriptor>0)
 	{
 		printf("1MB HDD created! with file descriptor %d\n",file_descriptor);
-		ret=readData(file_descriptor,0,(void*)data);
+		print_inodeBitmaps(file_descriptor);
 		printf("Value returned : %d\n",ret);
 	}
 	else
