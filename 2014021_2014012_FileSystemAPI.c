@@ -6,11 +6,11 @@
 /*
 	File System Offsets	in Bytes
 */
-const int superOffset = 0;
-const int inodeBitmapOffset = superOffset + 4;
-const int dataBitmapOffset = dataBitmapOffset + 4;
-const int inodeDataOffset = dataBitmapOffset + 4;
-const int dataOffset = inodeBitmapOffset + 4 * 128;
+const int superOffset = 0 * 1024; 
+const int inodeBitmapOffset =  4 * 1024; 
+const int dataBitmapOffset = 8 * 1024;
+const int inodeDataOffset = 12 * 1024;
+const int dataOffset = ( 12 + 4 * 128 ) * 1024;
 
 
 int createSFS( char* filename, int nbytes){
