@@ -1,6 +1,7 @@
 #include "2014021_2014012_FileSystemAPI.h"
 #include <unistd.h> 
 #include <fcntl.h>
+#include <sys/types.h>
 
 int createSFS( char* filename, int nbytes)
 {
@@ -22,7 +23,15 @@ int createSFS( char* filename, int nbytes)
 
 int readData( int disk, int blockNum, void* block)
 {
-
+	/*Return values :
+	-1 : Could not reach specified blockNum
+	-1 : Error reading data
+	 0 : File created as expected
+	*/
+	int bytes_read=4*1024;
+	if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
+	if(read(disk,(char*)block,bytes_read)!=bytes_read) return -2; //4KB Data Block
+	return bytes_read;
 }
 
 int writeData(int disk, int blockNum, void* block)
