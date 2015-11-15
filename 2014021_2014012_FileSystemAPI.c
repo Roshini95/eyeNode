@@ -22,7 +22,7 @@ int createSFS( char* filename, int nbytes){
 	-2 : Error while writing to file 
 	+ve value : File created as expected
 	*/
-	int return_value=open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+	int return_value=open(filename, O_RDWR, S_IRUSR | S_IWUSR);
 	if(return_value<0) return -1;
 	int i,err;
 	for(i=0;i<nbytes;i++)
