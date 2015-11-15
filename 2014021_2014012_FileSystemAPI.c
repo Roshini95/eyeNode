@@ -124,10 +124,10 @@ int readFile(int disk, char* filename, void* block){
 	}
 	else
 	{
-		uint8_t starting_block=starting;
+		uint8_t starting_block=(starting*4*1024)+dataOffset;
 		uint8_t size_in_int=file_size;
 		lseek(disk,0,SEEK_SET); //Return back to starting of file
-		if(lseek(disk,starting*4*1024,SEEK_SET)<0) return -1; //Seek to starting of file
+		if(lseek(disk,starting,SEEK_SET)<0) return -1; //Seek to starting of file
 		if(read(disk,(char*)block,size_in_int)!=size_in_int) return -2; //Read 'size' bytes
 	}
 	return 0;
