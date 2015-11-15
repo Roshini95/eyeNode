@@ -1,9 +1,15 @@
-#include ".2014021_2014012.Misc.h"
+#include "2014021_2014012_FileSystemAPI.h"
 #include <stdio.h>
 
 void main()
 {
-	printf("4MB ( I hope it's 4MB) file created?\n");
-	makeDisk(1,1000000);
-	printf("4MB ( I hope it's 4MB) file created!\n");
+	int file_descriptor=createSFS("potato.dat",1024*1024*128);
+	if(file_descriptor>0)
+	{
+		printf("128MB HDD created!\n");
+	}
+	else
+	{
+		printf("Error!\n");
+	}
 }

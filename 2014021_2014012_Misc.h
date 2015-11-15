@@ -1,1 +1,0 @@
-void makeDisk(int disk,int nBytes);
