@@ -12,7 +12,6 @@ const int dataBitmapOffset = 8 * 1024;
 const int inodeDataOffset = 12 * 1024;
 const int dataOffset = ( 12 + 4 * 128 ) * 1024;
 
-
 int createSFS( char* filename, int nbytes){
 	/*Return values :
 	-1 : File not created
@@ -35,7 +34,7 @@ int readData( int disk, int blockNum, void* block)
 	/*Return values :
 	-1 : Could not reach specified blockNum
 	-1 : Error reading data
-	 0 : File created as expected
+	 +ve number : Data read successfully
 	*/
 	int bytes_read=4*1024;
 	if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
@@ -44,7 +43,15 @@ int readData( int disk, int blockNum, void* block)
 }
 
 int writeData(int disk, int blockNum, void* block){
-
+	/*Return values :
+	-1 : Could not reach specified blockNum
+	-1 : Error writing data
+	 +ve number : Dat written successfully
+	*/
+	 int bytes_to_write=4*1024;
+	 if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
+	 if(write(disk,(char*),bytes_to_write)!=bytes_to_write) return -2; //4KB Data Block
+	 return bytes_to_write;
 }
 
 int writeFile(int disk, char* filename, void* block){
