@@ -1,4 +1,5 @@
 #include "2014021_2014012_DiagnosticAPI.h"
+#include <stdio.h>
 
 /*
 	File System Offsets	in Bytes
@@ -29,5 +30,34 @@ void print_dataBitmaps(int fileSystemId)
 
 void print_FileList(int fileSystemId)
 {	
-	
+	char* file_name,*starting_block,*number_of_blocks,*file_size;
+	char* inode_map,*inode_data;
+	int bytes_read=4*1024*128; //128 blocks for inode
+	if(lseek(disk,inodeBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
+	if(read(disk,inode_map,bytes_read)!=bytes_read) return; //Error reading from file
+	int i,j,k;
+	if(lseek(disk,inodeDataOffset,SEEK_SET)<0) return ; //Error reaching second offset
+	if(read(disk,inode_data,bytes_read)!=bytes_read) return; //Error reading second time from file
+	//Print data for non-zero inode entries
+	char* entry;
+	for(i=0;i<4*1024;i++) 
+	{	
+		for(j=0;j<8;j++)
+		{
+			k=inode_map[i];
+			k=(k>>j)&1;
+			if(k)
+			{
+				substring(inode_data,entry,16*i,16); 
+				substring(file_name,entry,0,8);
+				substring(starting_block,entry,8,2);
+				substring(number_of_blocks,entry,10,2);
+				substring(file_size,entry,12,4);
+				printf("File name : %s\n",file_name);
+				printf("Starting block of file : %s\n",starting_block);
+				printf("Number of blocks : %s\n",number_of_blocks);
+				printf("File size : %s\n",file_size);
+			}
+		}		
+	}	
 }
