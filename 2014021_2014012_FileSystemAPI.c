@@ -2,6 +2,10 @@
 #include <unistd.h> 
 #include <fcntl.h>
 #include <sys/types.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 	File System Offsets	in Bytes
@@ -51,14 +55,14 @@ int writeData(int disk, int blockNum, void* block){
 	*/
 	 int bytes_to_write=4*1024;
 	 if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
-	 if(write(disk,(char*),bytes_to_write)!=bytes_to_write) return -2; //4KB Data Block
+	 if(write(disk,(char*)block,bytes_to_write)!=bytes_to_write) return -2; //4KB Data Block
 	 lseek(disk,0,SEEK_SET); //Return back to starting of file
 	 return bytes_to_write;
 }
 
 int writeFile(int disk, char* filename, void* block){
 	int exists = 0;
-	int i;
+	int i,active;
 	int j = inodeBitmapOffset;
 	for (i = inodeDataOffset; i < dataOffset; i += 16){
 		// Check if inode is active
@@ -100,19 +104,23 @@ int readFile(int disk, char* filename, void* block){
 	 0 : Data read successfully
 	*/
 	int i,found;
-	char* name,word,*starting,*file_size,*n_blocks;
+	int* starting,*file_size,*n_blocks;
+	starting=(int*)malloc(sizeof(starting));
+	file_size=(int*)malloc(sizeof(file_size));
+	n_blocks=(int*)malloc(sizeof(n_blocks));
+	char *name,*word;
 	found=0;
 	for(i=inodeDataOffset;i<dataOffset;i+=16)
 	{
 		if(lseek(disk,i,SEEK_SET)<0) return -1;
 		if(read(disk,word,16)!=16) return -2; //4KB Data Block
-		substring(word,name,0,8); //Extract file name
+		memcpy((void*)name,(void*)word,8); //Extract file name
 		if(!strcmp(name,filename))
 		{
 			found=1;
-			substring(word,starting,8,2);
-			substring(word,n_blocks,10,2);
-			substring(word,file_size,12,4);
+			memcpy((void*)starting,(void*)(word+8),2);
+			memcpy((void*)n_blocks,(void*)(word+10),2);
+			memcpy((void*)file_size,(void*)(word+12),4);
 			break;
 		}
 		lseek(disk,0,SEEK_SET); //Return back to starting of file
@@ -124,11 +132,10 @@ int readFile(int disk, char* filename, void* block){
 	}
 	else
 	{
-		uint8_t starting_block=(starting*4*1024)+dataOffset;
-		uint8_t size_in_int=file_size;
+		int starting_block=((*starting)*4*1024)+dataOffset;
 		lseek(disk,0,SEEK_SET); //Return back to starting of file
-		if(lseek(disk,starting,SEEK_SET)<0) return -1; //Seek to starting of file
-		if(read(disk,(char*)block,size_in_int)!=size_in_int) return -2; //Read 'size' bytes
+		if(lseek(disk,(*starting),SEEK_SET)<0) return -1; //Seek to starting of file
+		if(read(disk,(char*)block,(*file_size))!=(*file_size)) return -2; //Read 'size' bytes
 	}
 	return 0;
 }
