@@ -22,7 +22,7 @@ int createSFS( char* filename, int nbytes){
 	-2 : Error while writing to file 
 	+ve value : File created as expected
 	*/
-	int return_value=open(filename, O_WRONLY | O_CREAT);
+	int return_value=open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 	if(return_value<0) return -1;
 	int i,err;
 	for(i=0;i<nbytes;i++)
@@ -42,7 +42,7 @@ int readData(int disk, int blockNum, void* block)
 	*/
 	int bytes_read=4*1024;
 	if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
-	if(read(disk,(char*)block,bytes_read)!=bytes_read) return -2; //4KB Data Block
+	if(read(disk,block,bytes_read)!=bytes_read) return -2; //4KB Data Block
 	lseek(disk,0,SEEK_SET); //Return back to starting of file
 	return bytes_read;
 }
@@ -55,7 +55,7 @@ int writeData(int disk, int blockNum, void* block){
 	*/
 	 int bytes_to_write=4*1024;
 	 if(lseek(disk,blockNum*1024*4,SEEK_SET)<0) return -1;
-	 if(write(disk,(char*)block,bytes_to_write)!=bytes_to_write) return -2; //4KB Data Block
+	 if(write(disk,block,bytes_to_write)!=bytes_to_write) return -2; //4KB Data Block
 	 lseek(disk,0,SEEK_SET); //Return back to starting of file
 	 return bytes_to_write;
 }
@@ -67,15 +67,17 @@ int writeFile(int disk, char* filename, void* block){
 	for (i = inodeDataOffset; i < dataOffset; i += 16){
 		// Check if inode is active
 		if ( lseek(disk, j, SEEK_SET) >= 0 ){
-			char tempCheck;
-			if (read(disk, &tempCheck, 1) == 1){
-				uint8_t x = tempCheck;
+			char* tempCheck;
+			tempCheck=(char*)malloc(sizeof(tempCheck));
+			if (read(disk, (void*)tempCheck, 1) == 1){
+				int x = (*tempCheck);
 				// Extract the first bit of x[which is of 8 bits] and check whether it is set
 				active = x & (1 << 7);
 				if (active){
-					char fileNameCheck[8];
+					char *fileNameCheck;
+					fileNameCheck=(char*)malloc(sizeof(char*)*8);
 					lseek(disk, i, SEEK_SET);
-					read(disk, fileNameCheck, 8);
+					read(disk, (void*)fileNameCheck, 8);
 					if (strcmp(fileNameCheck, filename) == 0){
 						// If space is still left for block in file, write in file
 						// Else, copy entire file to buffer, and erase this location
@@ -109,11 +111,13 @@ int readFile(int disk, char* filename, void* block){
 	file_size=(int*)malloc(sizeof(file_size));
 	n_blocks=(int*)malloc(sizeof(n_blocks));
 	char *name,*word;
+	word=(char*)malloc(sizeof(char*)*16);
+	name=(char*)malloc(sizeof(char*)*8); 
 	found=0;
 	for(i=inodeDataOffset;i<dataOffset;i+=16)
 	{
 		if(lseek(disk,i,SEEK_SET)<0) return -1;
-		if(read(disk,word,16)!=16) return -2; //4KB Data Block
+		if(read(disk,(void*)word,16)!=16) return -2; //4KB Data Block
 		memcpy((void*)name,(void*)word,8); //Extract file name
 		if(!strcmp(name,filename))
 		{
@@ -135,7 +139,7 @@ int readFile(int disk, char* filename, void* block){
 		int starting_block=((*starting)*4*1024)+dataOffset;
 		lseek(disk,0,SEEK_SET); //Return back to starting of file
 		if(lseek(disk,(*starting),SEEK_SET)<0) return -1; //Seek to starting of file
-		if(read(disk,(char*)block,(*file_size))!=(*file_size)) return -2; //Read 'size' bytes
+		if(read(disk,block,(*file_size))!=(*file_size)) return -2; //Read 'size' bytes
 	}
 	return 0;
 }

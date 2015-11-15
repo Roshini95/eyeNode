@@ -15,8 +15,9 @@ void print_inodeBitmaps(int fileSystemId)
 {
 	char* inode_map;
 	int bytes_to_read=4*1024; //4KB
+	inode_map=(char*)malloc(sizeof(char*)*bytes_to_read);
 	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
-	if(read(fileSystemId,inode_map,bytes_to_read)!=bytes_to_read) return; //Error reading from file
+	if(read(fileSystemId,(void*)inode_map,bytes_to_read)!=bytes_to_read) return; //Error reading from file
 	printf("Inode bitmap :\n%s\n",inode_map);
 }
 
@@ -24,8 +25,9 @@ void print_dataBitmaps(int fileSystemId)
 {
 	char* data_map;
 	int bytes_to_read=4*1024; //4KB
+	data_map=(char*)malloc(sizeof(char*)*bytes_to_read);
 	if(lseek(fileSystemId,dataBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
-	if(read(fileSystemId,data_map,bytes_to_read)!=bytes_to_read) return; //Error reading from file
+	if(read(fileSystemId,(void*)data_map,bytes_to_read)!=bytes_to_read) return; //Error reading from file
 	printf("Data bitmap :\n%s\n",data_map);
 }
 
@@ -38,12 +40,15 @@ void print_FileList(int fileSystemId)
 	number_of_blocks=(int*)malloc(sizeof(number_of_blocks));
 	file_size=(int*)malloc(sizeof(file_size));
 	char* inode_map,*inode_data;
-	int bytes_read=4*1024*128; //128 blocks for inode
-	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
-	if(read(fileSystemId,inode_map,bytes_read)!=bytes_read) return; //Error reading from file
+	int fourKB=4*1024;
+	int bytes_read=fourKB*128; //128 blocks for inode
+	inode_map=(char*)malloc(sizeof(char*)*fourKB);
+	inode_data=(char*)malloc(sizeof(char*)*bytes_read);
+	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return; //Error reaching offset
+	if(read(fileSystemId,(void*)inode_map,bytes_read)!=bytes_read) return; //Error reading from file
 	int i,j,k;
 	if(lseek(fileSystemId,inodeDataOffset,SEEK_SET)<0) return ; //Error reaching second offset
-	if(read(fileSystemId,inode_data,bytes_read)!=bytes_read) return; //Error reading second time from file
+	if(read(fileSystemId,(void*)inode_data,bytes_read)!=bytes_read) return; //Error reading second time from file
 	//Print data for non-zero inode entries
 	char* entry;
 	entry=(char*)malloc(sizeof(char*)*16); //Size of an inode entry
