@@ -2,8 +2,17 @@
 #include <unistd.h> 
 #include <fcntl.h>
 
-int createSFS( char* filename, int nbytes)
-{
+/*
+	File System Offsets	in Bytes
+*/
+const int superOffset = 0;
+const int inodeBitmapOffset = superOffset + 4;
+const int dataBitmapOffset = dataBitmapOffset + 4;
+const int inodeDataOffset = dataBitmapOffset + 4;
+const int dataOffset = inodeBitmapOffset + 4 * 128;
+
+
+int createSFS( char* filename, int nbytes){
 	/*Return values :
 	-1 : File not created
 	-2 : Error while writing to file 
@@ -20,22 +29,18 @@ int createSFS( char* filename, int nbytes)
 	return return_value;	
 }
 
-int readData( int disk, int blockNum, void* block)
-{
+int readData( int disk, int blockNum, void* block){
 
 }
 
-int writeData(int disk, int blockNum, void* block)
-{
+int writeData(int disk, int blockNum, void* block){
 
 }
 
-int writeFile(int disk, char* filename, void* block)
-{
+int writeFile(int disk, char* filename, void* block){
 
 }
 
-int readFile(int disk, char* filename, void* block)
-{
+int readFile(int disk, char* filename, void* block){
 	
 }
