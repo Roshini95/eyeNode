@@ -55,7 +55,39 @@ int writeData(int disk, int blockNum, void* block){
 }
 
 int writeFile(int disk, char* filename, void* block){
+	int exists = 0;
+	int i;
+	int j = inodeBitmapOffset;
+	for (i = 0; i < inodeDataOffset; i += 16){
+		// Check if inode is active
+		if ( lseek(disk, j, SEEK_SET) >= 0 ){
+			char tempCheck;
+			if (read(disk, &tempCheck, 1) == 1){
+				uint8_t x = tempCheck;
+				// Extract the first bit of x[which is of 8 bits] and check whether it is set
+				active = x & (1 << 7);
+				if (active){
+					char fileNameCheck[8];
+					lseek(disk, i, SEEK_SET);
+					read(disk, fileNameCheck, 8);
+					if (strcmp(fileNameCheck, filename) == 0){
+						// If space is still left for block in file, write in file
+						// Else, copy entire file to buffer, and erase this location
+					}
+				}
+				else{
+					// Inactive INode found: Try to write data
 
+				}
+			}
+			else{
+				printf("Error Reading Inode Bitmap\n");
+			}
+		}
+		else{
+			printf("Error Seeking to Inode Bitmap\n");
+		}
+	}	
 }
 
 int readFile(int disk, char* filename, void* block){
