@@ -65,7 +65,7 @@ int writeFile(int disk, char* filename, void* block){
 	-2 : Error in read()
 	-3 : No space to write data
 	-4 : No space to write inode entry
-	-5 : Erroe writing to file
+	-5 : Error writing to file
 	 0 : File created successfully
 	*/
 	
@@ -78,7 +78,7 @@ int writeFile(int disk, char* filename, void* block){
 	//Temporary :
 	block_size=1;
 	atcual_size=fourKB;
-	
+
 	data_space=-1;
 	char inode_space_block,data_space_block;
 	inode_space=-1;
@@ -87,6 +87,7 @@ int writeFile(int disk, char* filename, void* block){
 	dataBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB data bitmap
 	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
 	if(read(disk,(void*)dataBitmap,fourKB)!=fourKB) return -2;
+	printf("First checkpoint\n");
 	l=0;
 	//Find space in data_bitmap
 	for(i=0;i<fourKB;i++)
@@ -117,6 +118,7 @@ int writeFile(int disk, char* filename, void* block){
 	inodeBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB inode bitmap
 	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
 	if(read(disk,(void*)inodeBitmap,fourKB)!=fourKB) return -2;
+	printf("Second checkpoint\n");
 	for(i=0;i<fourKB;i++)
 	{
 		for(j=0;j<8;j++)
@@ -140,33 +142,41 @@ int writeFile(int disk, char* filename, void* block){
 	yoda=(1<<(inode_space%8)) | yoda; //Setting 'inode_space%8'th bit
 	if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
 	if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
+	printf("Third checkpoint\n");
 
 	//Set data bitmap (data_space) to one:
 	yoda=data_space_block;
 	yoda=(1<<(data_space%8)) | yoda; //Setting 'data_space%8'th bit
 	if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
 	if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
+	printf("Fourth checkpoint\n");
 
 	//Write metadata to inode table
 	if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
 	if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
+	printf("Fifth checkpoint\n");
 	//Assuming write() shifts pointer to end of written block
 	char* ex;
 	ex=(char*)malloc(sizeof(char)*2);
 	memcpy((void*)ex,(void*)(&data_space),2); //Copying starting block of file (data)
 	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte starting block of file
+	printf("Sixth checkpoint\n");
 	//free(ex);
 	memcpy((void*)ex,(void*)(&block_size),2); //Copying number of blocks for file (data)
 	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte size of file (in blocks)
+	printf("Seventh checkpoint\n");
 	//free(ex);
 	ex=(char*)malloc(sizeof(char)*4);
 	memcpy((void*)ex,(void*)(&atcual_size),4); //Copying actual file size (data)
 	if(write(disk,(void*)ex,4)!=4) return -2; //Setting 4 blocks for file size
-	
+	printf("Eigth checkpoint\n");
+
 	//Write data
 	char* one_block;
 	one_block=(char*)malloc(sizeof(char)*fourKB);
 	if(lseek(disk,dataOffset+(data_space*fourKB),SEEK_SET)<0) return -1; //Seek pointer to location where data is to be written
+	printf("Ninth checkpoint\n");
+
 	//Write 4KB at at time
 	for(i=0;i<block_size;i++)
 	{
