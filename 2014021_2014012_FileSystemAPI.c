@@ -109,13 +109,13 @@ int writeFile(int disk, char* filename, void* block){
 	}
 
 	if(data_space == -1) return -3; //No space for data
-	
+
 	//Find space for inode entry in inode_bitmap
 	char* inodeBitmap;
-	blockNum=inodeBitmapOffset;
-	inodeBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB inode bitmap
-	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
-	if(read(disk,(void*)inodeBitmap,fourKB)!=fourKB) return -2;
+	blockNum = inodeBitmapOffset;
+	inodeBitmap = (char*)malloc(sizeof(char)*fourKB); //4KB inode bitmap
+	if(lseek(disk,blockNum*fourKB,SEEK_SET) < 0) return -1;
+	if(read(disk,(void*)inodeBitmap,fourKB) == -1) return -2;
 	printf("Second checkpoint\n");
 	for(i=0;i<fourKB;i++)
 	{
