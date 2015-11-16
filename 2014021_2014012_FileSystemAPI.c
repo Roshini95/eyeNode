@@ -123,26 +123,27 @@ int writeFile(int disk, char* filename, void* block){
 		{
 			k=(inodeBitmap[i]);
 			k=(k>>j)&1;
-			if(k)
+			if(k==0)
 			{
-				inode_space=(8*i+j); 
-				inode_space_block=inodeBitmap[inode_space/8]; //Get 8 bytes
+				inode_space=(8 * i + j); 
+				inode_space_block=inodeBitmap[inode_space / 8]; //Get 8 bytes
 				goto hell; 
 			}
 		}
 	}	
 	char yoda;
 	hell:
-	if(inode_space!=-1) return -4; //No space for inode entry
-
+	if(inode_space==-1) return -4; //No space for inode entry
 	//Set inode bitmap (inode_space)  to one:
 	yoda=inode_space_block;
+	// printf("Before : %d, want to set %d\n",yoda,(inode_space%8));
 	yoda=(1<<(inode_space%8)) | yoda; //Setting 'inode_space%8'th bit
+	// printf("After : %d\n",yoda);
 	if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
 	if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
 	printf("Third checkpoint\n");
 
-	//Set data bitmap (data_space) to one:
+	//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
 	yoda=data_space_block;
 	yoda=(1<<(data_space%8)) | yoda; //Setting 'data_space%8'th bit
 	if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
@@ -172,14 +173,15 @@ int writeFile(int disk, char* filename, void* block){
 	//Write data
 	char* one_block;
 	one_block=(char*)malloc(sizeof(char)*fourKB);
-	if(lseek(disk,dataOffset+(data_space*fourKB),SEEK_SET)<0) return -1; //Seek pointer to location where data is to be written
-	printf("Ninth checkpoint\n");
+	// if(lseek(disk,dataOffset+(data_space*fourKB),SEEK_SET)<0) return -1; //Seek pointer to location where data is to be written
+	// printf("Ninth checkpoint\n");
 
 	//Write 4KB at at time
 	for(i=0;i<block_size;i++)
 	{
 		memcpy(one_block,((char*)block),fourKB);
 		if(writeData(disk,(dataOffset/fourKB)+i+data_space,(void*)one_block)<0) return -5; //Error writing to file
+		block=block+fourKB; //4KB at a time
 	}
 	return 0;
 }
@@ -188,7 +190,7 @@ int readFile(int disk, char* filename, void* block){
 	/*Return values :
 	-1 : Error in lseek()
 	-2 : Error in read()
-	-3 : File not found error
+	-3 : File not found (in inode table) error
 	-4 : Error reading from file
 	 0 : Data read successfully
 	*/

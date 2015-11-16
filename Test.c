@@ -15,18 +15,16 @@ void main()
 		printf("1MB HDD created! with file descriptor %d\n",file_descriptor);
 		data=(char*)malloc(sizeof(char*)*4*1024); //4KB block
 		beta=(char*)malloc(sizeof(char*)*4*1024); //4KB block
-		strcpy(data,"ts");
+		strcpy(data,"potato tamatar");
 		printf("Writing file\n");
-		printf("%d\n",writeFile(file_descriptor,"wolo.txt",(void*)data));
+		printf("%d\n",writeFile(file_descriptor,"wololo.txt",(void*)data));
 		printf("Reading file\n");
-		printf("%d\n",readFile(file_descriptor,"wolo.txt",(void*)data));
+		printf("%d\n",readFile(file_descriptor,"wololo	.txt",(void*)data));
 		printf("Data : %s\n",data);
-		// //Write block to memory:
-		// writeData(file_descriptor,0,(void*)data);
-
-		// //Read that block from meory:
-		// readData(file_descriptor,0,(void*)beta);
-		// printf("Fetched block : %s\n",beta);
+		printf("Debugging:\n");
+		print_inodeBitmaps(file_descriptor);
+		print_dataBitmaps(file_descriptor);
+		// print_FileList(file_descriptor);
 	}
 	else
 	{

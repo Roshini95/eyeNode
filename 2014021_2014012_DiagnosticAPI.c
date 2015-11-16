@@ -18,8 +18,8 @@ void print_inodeBitmaps(int fileSystemId)
 	int bytes_to_read=4*1024; //4KB
 	inode_map=(char*)malloc(sizeof(char*)*bytes_to_read);
 	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
-	if(read(fileSystemId,(void*)inode_map,bytes_to_read)!=bytes_to_read) return; //Error reading from file
-	printf("Inode bitmap :\n%s\n",inode_map);
+	if(read(fileSystemId,(void*)inode_map,bytes_to_read) == -1) return; //Error reading from file
+	printf("Inode bitmap : %s\n",inode_map);
 }
 
 void print_dataBitmaps(int fileSystemId)
@@ -28,8 +28,8 @@ void print_dataBitmaps(int fileSystemId)
 	int bytes_to_read=4*1024; //4KB
 	data_map=(char*)malloc(sizeof(char*)*bytes_to_read);
 	if(lseek(fileSystemId,dataBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
-	if(read(fileSystemId,(void*)data_map,bytes_to_read)!=bytes_to_read) return; //Error reading from file
-	printf("Data bitmap :\n%s\n",data_map);
+	if(read(fileSystemId,(void*)data_map,bytes_to_read) == -1) return; //Error reading from file
+	printf("Data bitmap : %s\n",data_map);
 }
 
 void print_FileList(int fileSystemId)
@@ -46,10 +46,10 @@ void print_FileList(int fileSystemId)
 	inode_map=(char*)malloc(sizeof(char*)*fourKB);
 	inode_data=(char*)malloc(sizeof(char*)*bytes_read);
 	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return; //Error reaching offset
-	if(read(fileSystemId,(void*)inode_map,bytes_read)!=bytes_read) return; //Error reading from file
+	if(read(fileSystemId,(void*)inode_map,bytes_read) == -1) return; //Error reading from file
 	int i,j,k;
 	if(lseek(fileSystemId,inodeDataOffset,SEEK_SET)<0) return ; //Error reaching second offset
-	if(read(fileSystemId,(void*)inode_data,bytes_read)!=bytes_read) return; //Error reading second time from file
+	if(read(fileSystemId,(void*)inode_data,bytes_read) == -1) return; //Error reading second time from file
 	//Print data for non-zero inode entries
 	char* entry;
 	entry=(char*)malloc(sizeof(char*)*16); //Size of an inode entry
