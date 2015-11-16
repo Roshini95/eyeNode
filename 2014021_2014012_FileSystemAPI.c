@@ -60,29 +60,48 @@ int writeData(int disk, int blockNum, void* block){
 }
 
 int writeFile(int disk, char* filename, void* block){
-	//Assume block is 4KB for now
-	int j,i,k,blockNum,bytes_read,data_space,inode_space;
-	bytes_read=4*1024;
+	/*Return values :
+	-1 : Error in lseek()
+	-2 : Error in read()
+	-3 : No space to write data
+	-4 : No space to write inode entry
+	-5 : Erroe writing to file
+	 0 : File created successfully
+	*/
+	
+	//Calculate actual_size and block_size by checking block until null (or any other method that works)
+
+	int atual_size,block_size; //Set this equal to the number of blocks required by the given *block.
+	int j,i,k,blockNum,fourKB,data_space,inode_space,l;
+	fourKB=4*1024;
 	data_space=-1;
+	char inode_space_block,data_space_block;
 	inode_space=-1;
 	char* dataBitmap;
 	blockNum=dataBitmapOffset;
-	dataBitmap=(char*)malloc(sizeof(char)*bytes_read); //4KB data bitmap
+	dataBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB data bitmap
 	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
-	if(read(disk,(void*)dataBitmap,bytes_read)!=bytes_read) return -2;
-	if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
+	if(read(disk,(void*)dataBitmap,fourKB)!=fourKB) return -2;
+	l=0;
 	//Find space in data_bitmap
-	for(i=0;i<bytes_read;i++)
+	for(i=0;i<fourKB;i++)
 	{
 		for(j=0;j<8;j++)
 		{
 			k=(dataBitmap[i]);
 			k=(k>>j)&1;
-			if(k)
+			//Finding contiguous block of 'block_size' size
+			while(k)
 			{
-				data_space=(8*i+j);
+				l++;
+			}
+			if(l==block_size)
+			{
+				data_space=(8*i+j)-l; //Or -(l-1)...check
+				data_space_block=dataBitmap[data_space/8]; //Get 8 bytes
 				goto heaven; 
 			}
+			l=0;
 		}
 	}
 	heaven:
@@ -90,40 +109,74 @@ int writeFile(int disk, char* filename, void* block){
 	//Find space for inode entry in inode_bitmap
 	char* inodeBitmap;
 	blockNum=inodeBitmapOffset;
-	inodeBitmap=(char*)malloc(sizeof(char)*bytes_read); //4KB inode bitmap
+	inodeBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB inode bitmap
 	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
-	if(read(disk,(void*)inodeBitmapOffset,bytes_read)!=bytes_read) return -2;
-	if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
-	for(i=0;i<bytes_read;i++)
+	if(read(disk,(void*)inodeBitmap,fourKB)!=fourKB) return -2;
+	for(i=0;i<fourKB;i++)
 	{
 		for(j=0;j<8;j++)
 		{
-			k=(dataBitmap[i]);
+			k=(inodeBitmap[i]);
 			k=(k>>j)&1;
 			if(k)
 			{
-				inode_space=(8*i+j);
+				inode_space=(8*i+j); 
+				inode_space_block=inodeBitmap[inode_space/8]; //Get 8 bytes
 				goto hell; 
 			}
 		}
 	}	
+	char yoda;
 	hell:
 	if(inode_space!=-1) return -4; //No space for inode entry
-	//Set inode bitmap to one:
 
-	if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
-	if(write(disk,(void*)))
-	//Set data bitmap to one:
+	//Set inode bitmap (inode_space)  to one:
+	yoda=inode_space_block;
+	yoda=(1<<(inode_space%8)) | yoda; //Setting 'inode_space%8'th bit
+	if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
+	if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
+
+	//Set data bitmap (data_space) to one:
+	yoda=data_space_block;
+	yoda=(1<<(data_space%8)) | yoda; //Setting 'data_space%8'th bit
+	if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
+	if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
 
 	//Write metadata to inode table
-
+	if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
+	if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
+	//Assuming write() shifts pointer to end of written block
+	char* ex;
+	ex=(char*)malloc(sizeof(char)*2);
+	memcpy((void*)ex,(void*)(&data_space),2); //Copying starting block of file (data)
+	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte starting block of file
+	//free(ex);
+	memcpy((void*)ex,(void*)(&block_size),2); //Copying number of blocks for file (data)
+	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte size of file (in blocks)
+	//free(ex);
+	ex=(char*)malloc(sizeof(char)*4);
+	memcpy((void*)ex,(void*)(&atual_size),4); //Copying actual file size (data)
+	if(write(disk,(void*)ex,4)!=4) return -2; //Setting 4 blocks for file size
+	
 	//Write data
+	char* one_block;
+	one_block=(char*)malloc(sizeof(char)*fourKB);
+	if(lseek(disk,dataOffset+(data_space*fourKB),SEEK_SET)<0) return -1; //Seek pointer to location where data is to be written
+	//Write 4KB at at time
+	for(i=0;i<block_size;i++)
+	{
+		memcpy(one_block,((char*)block),fourKB);
+		if(writeData(disk,(dataOffset/fourKB)+i+data_space,(void*)one_block)<0) return -5; //Error writing to file
+	}
+	return 0;
 }
 
 int readFile(int disk, char* filename, void* block){
 	/*Return values :
 	-1 : Error in lseek()
 	-2 : Error in read()
+	-3 : File not found error
+	-4 : Error reading from file
 	 0 : Data read successfully
 	*/
 	int i,found;
@@ -147,16 +200,16 @@ int readFile(int disk, char* filename, void* block){
 			break;
 		}
 	}	
-	if(!found)
+	if(!found) return -3;
+	int starting_block=((starting)*fourKB)+dataOffset;
+	if(lseek(disk,(starting_block),SEEK_SET)<0) return -1; //Seek to starting of file
+	char* one_block;
+	one_block=(char*)malloc(sizeof(char)*fourKB);
+	//Reading 4KB at a time :
+	for(i=0;i<n_blocks;i++)
 	{
-		printf("File not found!\n");
-		return -3;
-	}
-	else
-	{
-		int starting_block=((starting)*fourKB)+dataOffset;
-		if(lseek(disk,(starting_block),SEEK_SET)<0) return -1; //Seek to starting of file
-		if(read(disk,block,(file_size))!=(file_size)) return -2; //Read 'size' bytes
+		if(readData(disk,(dataOffset/fourKB)+i+starting_block,(void*)one_block)<0) return -4;
+		memcpy((void*)(block+i*fourKB),(void*)one_block,fourKB); //Adding data to block, 4KB at a time
 	}
 	return 0;
 }
