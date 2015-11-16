@@ -31,6 +31,11 @@ int createSFS(char* filename, int nbytes){
 		err=write(return_value,(void*)(&data),1);
 		if(err!=1) return -2;
 	}
+	char* super_data;
+	// char sentimental[]="eyeNode SFS\nOne block size : 4KB\nMaximum hard drive(including inode) supported : 128MB\nInode data per file : 16KB (8KB Filename,2KB File head pointer,2KB file block size,4KB file size in Bytes\nFirst data block for Super,second for inode bitmap,third for data bitmap,fourth and 128 others for inode data,rest for normal data\n\0";
+	// super_data=(char*)malloc(sizeof(char)*(strlen(sentimental)+1));
+	// strcpy(super_data,sentimental);
+	// writeData(return_value,0,(void*)super_data);
 	return return_value;	
 }
 
