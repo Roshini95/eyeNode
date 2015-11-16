@@ -14,22 +14,34 @@
 
 void print_inodeBitmaps(int fileSystemId)
 {
+	int i;
 	char* inode_map;
 	int bytes_to_read=4*1024; //4KB
 	inode_map=(char*)malloc(sizeof(char*)*bytes_to_read);
 	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
 	if(read(fileSystemId,(void*)inode_map,bytes_to_read) == -1) return; //Error reading from file
-	printf("Inode bitmap : %s\n",inode_map);
+	printf("Inode bitmap\n");
+	for(i=0;i<bytes_to_read;i++)
+	{
+		printf("%d",inode_map[i]);
+	}
+	printf("\n");
 }
 
 void print_dataBitmaps(int fileSystemId)
 {
 	char* data_map;
+	int i;
 	int bytes_to_read=4*1024; //4KB
 	data_map=(char*)malloc(sizeof(char*)*bytes_to_read);
 	if(lseek(fileSystemId,dataBitmapOffset,SEEK_SET)<0) return ; //Error reaching offset
 	if(read(fileSystemId,(void*)data_map,bytes_to_read) == -1) return; //Error reading from file
-	printf("Data bitmap : %s\n",data_map);
+	printf("Data bitmap\n");
+	for(i=0;i<bytes_to_read;i++)
+	{
+		printf("%d",data_map[i]);
+	}
+	printf("\n");
 }
 
 void print_FileList(int fileSystemId)
@@ -71,6 +83,7 @@ void print_FileList(int fileSystemId)
 				printf("Starting block of file : %d\n",*starting_block);
 				printf("Number of blocks : %d\n",*number_of_blocks);
 				printf("File size : %d\n",*file_size);
+				printf("\n");
 			}
 		}		
 	}	
