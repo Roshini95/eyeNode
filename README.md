@@ -27,4 +27,6 @@ These are the actual data blocks.
 
 
 Functionality Supported:
+int createSFS(char* filename, int nbytes)
+Creates a disk with the name filename of bytes nbytes and return the resultant file descriptor
 
