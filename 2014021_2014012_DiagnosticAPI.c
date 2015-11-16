@@ -47,18 +47,15 @@ void print_dataBitmaps(int fileSystemId)
 void print_FileList(int fileSystemId)
 {	
 	char* file_name;
-	int *starting_block,*number_of_blocks,*file_size;
+	int starting_block,number_of_blocks,file_size;
 	file_name=(char*)malloc(8*sizeof(char*)); //8-byte word filename
-	starting_block=(int*)malloc(sizeof(starting_block));
-	number_of_blocks=(int*)malloc(sizeof(number_of_blocks));
-	file_size=(int*)malloc(sizeof(file_size));
 	char* inode_map,*inode_data;
 	int fourKB=4*1024;
 	int bytes_read=fourKB*128; //128 blocks for inode
 	inode_map=(char*)malloc(sizeof(char*)*fourKB);
 	inode_data=(char*)malloc(sizeof(char*)*bytes_read);
 	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return; //Error reaching offset
-	if(read(fileSystemId,(void*)inode_map,bytes_read) == -1) return; //Error reading from file
+	if(read(fileSystemId,(void*)inode_map,fourKB) == -1) return; //Error reading from file
 	int i,j,k;
 	if(lseek(fileSystemId,inodeDataOffset,SEEK_SET)<0) return ; //Error reaching second offset
 	if(read(fileSystemId,(void*)inode_data,bytes_read) == -1) return; //Error reading second time from file
@@ -76,13 +73,13 @@ void print_FileList(int fileSystemId)
 				//Reading (8i+j)th inode data entry
 				memcpy((void*)entry,(void*)(inode_data+(8*i+j)*16),16); //16 bytes per inode entry
 				memcpy((void*)file_name,(void*)entry,8); //First 8 bytes : filename
-				memcpy((void*)starting_block,(void*)(entry+8),2); //Next 2 bytes : starting_block
-				memcpy((void*)number_of_blocks,(void*)(entry+10),2); //Next 2 bytes : number of blocks
-				memcpy((void*)file_size,(void*)(entry+12),4); //Next 4 bytes : file size
+				memcpy((void*)(&starting_block),(void*)(entry+8),2); //Next 2 bytes : starting_block
+				memcpy((void*)(&number_of_blocks),(void*)(entry+10),2); //Next 2 bytes : number of blocks
+				memcpy((void*)(&file_size),(void*)(entry+12),4); //Next 4 bytes : file size
 				printf("File name : %s\n",file_name);
-				printf("Starting block of file : %d\n",*starting_block);
-				printf("Number of blocks : %d\n",*number_of_blocks);
-				printf("File size : %d\n",*file_size);
+				printf("Starting block of file : %d\n",starting_block);
+				printf("Number of blocks : %d\n",number_of_blocks);
+				printf("File size : %d\n",file_size);
 				printf("\n");
 			}
 		}		
