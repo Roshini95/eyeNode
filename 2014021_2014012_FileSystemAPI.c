@@ -93,24 +93,24 @@ int writeFile(int disk, char* filename, void* block){
 	printf("First checkpoint\n");
 	//Find space in data_bitmap
 	int maxContFound = 0;
-	for(i = 0; i < fourKB && maxContFound < block_size; i++)
+	for(i = 0; i < fourKB; i++)
 	{
-		for(j = 0; j < 8 && maxContFound < block_size; j++)
+		for(j = 0;j < 8; j++)
 		{
 			k = dataBitmap[i];
 			int isSet = (k >> j) & 1;
 			if (isSet == 0) maxContFound++;
 			else maxContFound = 0;
-			if(maxContFound==block_size) break;
+			if(maxContFound==block_size)
+			{
+				data_space = (8 * i + j) - ( maxContFound -1);
+				data_space_block = dataBitmap[ data_space / 8];
+				goto heaven;
+			}
 		}
 	}
-	if (maxContFound >= block_size){
-		data_space = (8 * i + j) - ( maxContFound - 1);
-		data_space_block = dataBitmap[ data_space / 8];
-	}
-
+	heaven:
 	if(data_space == -1) return -3; //No space for data
-
 	//Find space for inode entry in inode_bitmap
 	char* inodeBitmap;
 	blockNum = inodeBitmapOffset;
@@ -136,7 +136,6 @@ int writeFile(int disk, char* filename, void* block){
 	int jedi;
 	hell:
 	if(inode_space==-1) return -4; //No space for inode entry
-	
 	//TESTED:
 		//Set inode bitmap (inode_space)  to one:
 		yoda=inode_space_block;

@@ -23,7 +23,7 @@ void main()
 		printf("%d\n",readFile(file_descriptor,"abcdefgh",(void*)data));
 		printf("Data : %s\n",data);
 		printf("Debugging:\n");
-		// print_inodeBitmaps(file_descriptor);
+		print_inodeBitmaps(file_descriptor);
 		// print_dataBitmaps(file_descriptor);
 		// print_FileList(file_descriptor);
 	}
