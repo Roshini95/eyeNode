@@ -25,9 +25,12 @@ int createSFS( char* filename, int nbytes){
 	int return_value=open(filename, O_RDWR, S_IRUSR | S_IWUSR);
 	if(return_value<0) return -1;
 	int i,err;
+	char *data;
+	data=(char*)malloc(sizeof(data));
+	(*data)=0;
 	for(i=0;i<nbytes;i++)
 	{
-		err=write(return_value,"0",1);
+		err=write(return_value,(void*)data,1);
 		if(err!=1) return -2;
 	}
 	return return_value;	
@@ -61,40 +64,52 @@ int writeData(int disk, int blockNum, void* block){
 }
 
 int writeFile(int disk, char* filename, void* block){
-	int exists = 0;
-	int i,active;
-	int j = inodeBitmapOffset;
-	for (i = inodeDataOffset; i < dataOffset; i += 16){
-		// Check if inode is active
-		if ( lseek(disk, j, SEEK_SET) >= 0 ){
-			char* tempCheck;
-			tempCheck=(char*)malloc(sizeof(tempCheck));
-			if (read(disk, (void*)tempCheck, 1) == 1){
-				int x = (*tempCheck);
-				// Extract the first bit of x[which is of 8 bits] and check whether it is set
-				active = x & (1 << 7);
-				if (active){
-					char *fileNameCheck;
-					fileNameCheck=(char*)malloc(sizeof(char*)*8);
-					lseek(disk, i, SEEK_SET);
-					read(disk, (void*)fileNameCheck, 8);
-					if (strcmp(fileNameCheck, filename) == 0){
-						// If space is still left for block in file, write in file
-						// Else, copy entire file to buffer, and erase this location
-
-					}
-				}
-				else{
-					// Inactive INode found: Try to write data
-
-				}
-			}
-			else{
-				printf("Error Reading Inode Bitmap\n");
+	//Assume block is 4KB for now
+	int j,i,k,blockNum,bytes_read,data_space;
+	bytes_read=4*1024;
+	data_space=-1;
+	char* dataBitmap;
+	blockNum=dataBitmapOffset;
+	dataBitmap=(char*)malloc(sizeof(char*)*bytes_read); //4KB data bitmap
+	if(lseek(disk,blockNum,SEEK_SET)<0) return -1;
+	if(read(disk,(void*)dataBitmap,bytes_read)!=bytes_read) return -2;
+	if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
+	//Find space in data_bitmap
+	for(i=0;i<bytes_read;i++)
+	{
+		for(j=0;j<8;j++)
+		{
+			k=(dataBitmap[i]);
+			k=(k>>j)&1;
+			if(k)
+			{
+				data_space=(8*i+j);
+				goto heaven; 
 			}
 		}
-		else{
-			printf("Error Seeking to Inode Bitmap\n");
+	}
+	heaven:
+	if(data_space!=-1)
+	{
+		//Find space for inode entry in inode_bitmap
+		char* inodeBitmap;
+		blockNum=inodeBitmapOffset;
+		inodeBitmap=(char*)malloc(sizeof(char*)*bytes_read); //4KB inode bitmap
+		if(lseek(disk,blockNum,SEEK_SET)<0) return -1;
+		if(read(disk,(void*)inodeBitmapOffset,bytes_read)!=bytes_read) return -2;
+		if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
+		for(i=0;i<bytes_read;i++)
+		{
+			for(j=0;j<8;j++)
+			{
+				k=(dataBitmap[i]);
+				k=(k>>j)&1;
+				if(k)
+				{
+					data_space=(8*i+j);
+					goto heaven; 
+				}
+			}
 		}
 	}	
 }

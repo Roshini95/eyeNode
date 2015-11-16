@@ -14,14 +14,13 @@ void main()
 		printf("1MB HDD created! with file descriptor %d\n",file_descriptor);
 		data=(char*)malloc(sizeof(char*)*4*1024); //4KB block
 		beta=(char*)malloc(sizeof(char*)*4*1024); //4KB block
+		// strcpy(data,"");
+		// //Write block to memory:
+		// writeData(file_descriptor,0,(void*)data);
 
-		data=strdup("wolololo");
-		//Write block to memory:
-		writeData(file_descriptor,8,(void*)data);
-
-		//Read that block from meory:
-		readData(file_descriptor,8,(void*)beta);
-		printf("Fetched block : %s\n",beta);
+		// //Read that block from meory:
+		// readData(file_descriptor,0,(void*)beta);
+		// printf("Fetched block : %s\n",beta);
 	}
 	else
 	{
