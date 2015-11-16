@@ -1,4 +1,4 @@
-#include "2014021_2014012_FileSystemAPI.h"
+#include <2014021_2014012_FileSystemAPI.h>
 #include <unistd.h> 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -22,7 +22,7 @@ int createSFS(char* filename, int nbytes){
 	-2 : Error while writing to file 
 	+ve value : File created as expected
 	*/
-	int return_value=open(filename, O_RDWR, S_IRUSR | S_IWUSR); //Add O_CREAT
+	int return_value=open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR); //Add O_CREAT
 	if(return_value<0) return -1;
 	int i,err;
 	char data=0;
@@ -86,7 +86,10 @@ int writeFile(int disk, char* filename, void* block){
 	blockNum=dataBitmapOffset;
 	dataBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB data bitmap
 	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
-	if(read(disk,(void*)dataBitmap,fourKB)!=fourKB) return -2;
+	if(read(disk,(void*)dataBitmap,fourKB) == -1){
+		// printf("Data Bitmap%s\n", (char*)dataBitmap);
+		return -2;
+	}
 	printf("First checkpoint\n");
 	l=0;
 	//Find space in data_bitmap
@@ -96,12 +99,12 @@ int writeFile(int disk, char* filename, void* block){
 		{
 			k=(dataBitmap[i]);
 			k=(k>>j)&1;
+			// printf("%d\n",k);
 			//Finding contiguous block of 'block_size' size
-			while(k)
-			{
-				l++;
-			}
-			if(l==block_size)
+			printf("block_size%d\n", block_size);
+			while(k == 0 || l < block_size) l++;
+			printf("k:%d\n", l);
+			if(l == block_size)
 			{
 				data_space=(8*i+j)-l; //Or -(l-1)...check
 				data_space_block=dataBitmap[data_space/8]; //Get 8 bytes
