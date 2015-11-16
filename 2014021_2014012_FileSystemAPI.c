@@ -72,7 +72,7 @@ int writeFile(int disk, char* filename, void* block){
 	//Calculate actual_size and block_size by checking block until null (or any other method that works)
 
 	int atcual_size,block_size; //Set this equal to the number of blocks required by the given *block.
-	int j,i,k,blockNum,fourKB,data_space,inode_space,l;
+	int j,i,k,blockNum,fourKB,data_space,inode_space;
 	fourKB=4*1024;
 
 	//Temporary :
@@ -91,30 +91,25 @@ int writeFile(int disk, char* filename, void* block){
 		return -2;
 	}
 	printf("First checkpoint\n");
-	l=0;
 	//Find space in data_bitmap
-	for(i=0;i<fourKB;i++)
+	int maxContFound = 0;
+	for(i = 0; i < fourKB && maxContFound < block_size; i++)
 	{
-		for(j=0;j<8;j++)
+		for(j = 0; j < 8 && maxContFound < block_size; j++)
 		{
-			k=(dataBitmap[i]);
-			k=(k>>j)&1;
-			// printf("%d\n",k);
-			//Finding contiguous block of 'block_size' size
-			printf("block_size%d\n", block_size);
-			while(k == 0 || l < block_size) l++;
-			printf("k:%d\n", l);
-			if(l == block_size)
-			{
-				data_space=(8*i+j)-l; //Or -(l-1)...check
-				data_space_block=dataBitmap[data_space/8]; //Get 8 bytes
-				goto heaven; 
-			}
-			l=0;
+			k = dataBitmap[i];
+			int isSet = (k >> j) & 1;
+			if (isSet == 0) maxContFound++;
+			else maxContFound = 0;
 		}
 	}
-	heaven:
-	if(data_space==-1) return -3; //No space for data
+	if (maxContFound >= block_size){
+		data_space = (8 * i + j) - maxContFound;
+		data_space_block = dataBitmap[ data_space / 8];
+	}
+
+	if(data_space == -1) return -3; //No space for data
+	
 	//Find space for inode entry in inode_bitmap
 	char* inodeBitmap;
 	blockNum=inodeBitmapOffset;
