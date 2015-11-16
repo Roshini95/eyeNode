@@ -71,9 +71,14 @@ int writeFile(int disk, char* filename, void* block){
 	
 	//Calculate actual_size and block_size by checking block until null (or any other method that works)
 
-	int atual_size,block_size; //Set this equal to the number of blocks required by the given *block.
+	int atcual_size,block_size; //Set this equal to the number of blocks required by the given *block.
 	int j,i,k,blockNum,fourKB,data_space,inode_space,l;
 	fourKB=4*1024;
+
+	//Temporary :
+	block_size=1;
+	atcual_size=fourKB;
+	
 	data_space=-1;
 	char inode_space_block,data_space_block;
 	inode_space=-1;
@@ -155,7 +160,7 @@ int writeFile(int disk, char* filename, void* block){
 	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte size of file (in blocks)
 	//free(ex);
 	ex=(char*)malloc(sizeof(char)*4);
-	memcpy((void*)ex,(void*)(&atual_size),4); //Copying actual file size (data)
+	memcpy((void*)ex,(void*)(&atcual_size),4); //Copying actual file size (data)
 	if(write(disk,(void*)ex,4)!=4) return -2; //Setting 4 blocks for file size
 	
 	//Write data

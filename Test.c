@@ -14,7 +14,8 @@ void main()
 		printf("1MB HDD created! with file descriptor %d\n",file_descriptor);
 		data=(char*)malloc(sizeof(char*)*4*1024); //4KB block
 		beta=(char*)malloc(sizeof(char*)*4*1024); //4KB block
-		// strcpy(data,"");
+		strcpy(data,"aloopotato");
+		printf("%d\n",writeFile(file_descriptor,"wolo.txt",(void*)data));
 		// //Write block to memory:
 		// writeData(file_descriptor,0,(void*)data);
 
