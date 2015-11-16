@@ -131,27 +131,27 @@ int writeFile(int disk, char* filename, void* block){
 			}
 		}
 	}	
-	char yoda;
+	unsigned char yoda;
 	int jedi;
 	hell:
 	if(inode_space==-1) return -4; //No space for inode entry
-	//Set inode bitmap (inode_space)  to one:
-	//Giving negative numbers ..fix this
-	yoda=inode_space_block;
-	jedi=(int)yoda;
-	printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
-	jedi=((128)>>(inode_space%8)) | jedi; //Setting 'inode_space%8'th bit
-	printf("After : %d\n",jedi);
-	if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
-	yoda=(char)jedi;
-	printf("%c %d %d\n",yoda,jedi,(int)yoda);
-	if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
 	
-	//Checking if inode bit was actually set
-	char into;
-	lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET);
-	read(disk,(void*)(&into),1);
-	printf("%d\n",into);
+	//TESTED:
+		//Set inode bitmap (inode_space)  to one:
+		yoda=inode_space_block;
+		jedi=(int)yoda;
+		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+		jedi=((128)>>(inode_space%8)) | jedi; //Setting 'inode_space%8'th bit
+		// printf("After : %d\n",jedi);
+		if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
+		yoda=(char)jedi;
+		if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
+	
+	// //Checking if inode bit was actually set
+	// unsigned char into;
+	// lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET);
+	// read(disk,(void*)(&into),1);
+	// printf("%d\n",into);
 
 	printf("Third checkpoint\n");
 
