@@ -16,14 +16,13 @@ void main()
 		data=(char*)malloc(sizeof(char*)*4*1024); //4KB block
 		beta=(char*)malloc(sizeof(char*)*4*1024); //4KB block
 		strcpy(data,"potato tamatar");
-		printf("Writing file\n");
-		printf("%d\n",writeFile(file_descriptor,"wololo.txt",(void*)data));
+		printf("%d\n",writeFile(file_descriptor,"abcdefgh",(void*)data));
 		printf("Reading file\n");
-		printf("%d\n",readFile(file_descriptor,"wololo	.txt",(void*)data));
+		printf("%d\n",readFile(file_descriptor,"abcdefgh",(void*)data));
 		printf("Data : %s\n",data);
-		printf("Debugging:\n");
-		print_inodeBitmaps(file_descriptor);
-		print_dataBitmaps(file_descriptor);
+		// printf("Debugging:\n");
+		// print_inodeBitmaps(file_descriptor);
+		// print_dataBitmaps(file_descriptor);
 		// print_FileList(file_descriptor);
 	}
 	else

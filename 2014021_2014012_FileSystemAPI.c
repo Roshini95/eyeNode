@@ -71,13 +71,13 @@ int writeFile(int disk, char* filename, void* block){
 	
 	//Calculate actual_size and block_size by checking block until null (or any other method that works)
 
-	int atcual_size,block_size; //Set this equal to the number of blocks required by the given *block.
+	int actual_size,block_size; //Set this equal to the number of blocks required by the given *block.
 	int j,i,k,blockNum,fourKB,data_space,inode_space;
 	fourKB=4*1024;
 
 	//Temporary :
 	block_size=1;
-	atcual_size=fourKB;
+	actual_size=fourKB;
 
 	data_space=-1;
 	char inode_space_block,data_space_block;
@@ -132,27 +132,51 @@ int writeFile(int disk, char* filename, void* block){
 		}
 	}	
 	char yoda;
+	int jedi;
 	hell:
 	if(inode_space==-1) return -4; //No space for inode entry
 	//Set inode bitmap (inode_space)  to one:
+	//Giving negative numbers ..fix this
 	yoda=inode_space_block;
-	// printf("Before : %d, want to set %d\n",yoda,(inode_space%8));
-	yoda=(1<<(inode_space%8)) | yoda; //Setting 'inode_space%8'th bit
-	// printf("After : %d\n",yoda);
+	jedi=(int)yoda;
+	printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+	jedi=((128)>>(inode_space%8)) | jedi; //Setting 'inode_space%8'th bit
+	printf("After : %d\n",jedi);
 	if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
+	yoda=(char)jedi;
+	printf("%c %d %d\n",yoda,jedi,(int)yoda);
 	if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
+	
+	//Checking if inode bit was actually set
+	char into;
+	lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET);
+	read(disk,(void*)(&into),1);
+	printf("%d\n",into);
+
 	printf("Third checkpoint\n");
 
 	//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
 	yoda=data_space_block;
+	// printf("Before : %d, want to set %d\n",yoda,(data_space%8));
 	yoda=(1<<(data_space%8)) | yoda; //Setting 'data_space%8'th bit
+	// printf("After : %d\n",yoda);
 	if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
 	if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
 	printf("Fourth checkpoint\n");
 
-	//Write metadata to inode table
-	if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
-	if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
+	//TESTED : 
+		//Write metadata to inode table
+		if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
+		if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
+
+	// //Checking if filename was actually written:
+	// lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET); 
+	// char* holla;
+	// holla=(char*)malloc(sizeof(char)*8);
+	// read(disk,(void*)holla,8);
+	// int yoy=0;
+	// printf("%s WTAF\n",holla);
+
 	printf("Fifth checkpoint\n");
 	//Assuming write() shifts pointer to end of written block
 	char* ex;
@@ -166,7 +190,7 @@ int writeFile(int disk, char* filename, void* block){
 	printf("Seventh checkpoint\n");
 	//free(ex);
 	ex=(char*)malloc(sizeof(char)*4);
-	memcpy((void*)ex,(void*)(&atcual_size),4); //Copying actual file size (data)
+	memcpy((void*)ex,(void*)(&actual_size),4); //Copying actual file size (data)
 	if(write(disk,(void*)ex,4)!=4) return -2; //Setting 4 blocks for file size
 	printf("Eigth checkpoint\n");
 
