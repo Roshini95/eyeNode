@@ -18,6 +18,8 @@ void main()
 		strcpy(data,"potato tamatar");
 		printf("%d\n",writeFile(file_descriptor,"abcdefgh",(void*)data));
 		printf("Reading file\n");
+		strcpy(data, "Reset");
+
 		printf("%d\n",readFile(file_descriptor,"abcdefgh",(void*)data));
 		printf("Data : %s\n",data);
 		printf("Debugging:\n");
