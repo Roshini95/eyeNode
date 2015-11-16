@@ -146,29 +146,38 @@ int writeFile(int disk, char* filename, void* block){
 		if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
 		yoda=(char)jedi;
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
-	
+		printf("Third checkpoint\n");
+
 	// //Checking if inode bit was actually set
 	// unsigned char into;
 	// lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET);
 	// read(disk,(void*)(&into),1);
 	// printf("%d\n",into);
 
-	printf("Third checkpoint\n");
+	//TESTED:
+		//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
+		yoda=data_space_block;
+		jedi=(int)yoda;
+		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+		jedi=((128)>>(data_space%8)) | jedi; //Setting 'data_space%8'th bit
+		// printf("After : %d\n",jedi);
+		if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
+		yoda=(char)jedi;
+		if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
+		printf("Fourth checkpoint\n");
 
-	//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
-	yoda=data_space_block;
-	// printf("Before : %d, want to set %d\n",yoda,(data_space%8));
-	yoda=(1<<(data_space%8)) | yoda; //Setting 'data_space%8'th bit
-	// printf("After : %d\n",yoda);
-	if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
-	if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
-	printf("Fourth checkpoint\n");
+	// // Checking if inode bit was actually set
+	// unsigned char into;
+	// lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET);
+	// read(disk,(void*)(&into),1);
+	// printf("was there %d\n",into);
 
 	//TESTED : 
 		//Write metadata to inode table
 		if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
 		if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
-
+		printf("Fifth checkpoint\n");
+		
 	// //Checking if filename was actually written:
 	// lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET); 
 	// char* holla;
@@ -177,7 +186,6 @@ int writeFile(int disk, char* filename, void* block){
 	// int yoy=0;
 	// printf("%s WTAF\n",holla);
 
-	printf("Fifth checkpoint\n");
 	//Assuming write() shifts pointer to end of written block
 	char* ex;
 	ex=(char*)malloc(sizeof(char)*2);
