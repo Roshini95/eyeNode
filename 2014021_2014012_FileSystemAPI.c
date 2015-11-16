@@ -244,18 +244,21 @@ int readFile(int disk, char* filename, void* block){
 			memcpy((void*)(&starting),(void*)(word+8),2);
 			memcpy((void*)(&n_blocks),(void*)(word+10),2);
 			memcpy((void*)(&file_size),(void*)(word+12),4);
+			printf("Starting address : %d\n",starting);
+			printf("Number of blocks : %d\n",n_blocks);
+			printf("Size of file : %dB\n",file_size);
 			break;
 		}
 	}	
 	if(!found) return -3;
 	int starting_block=((starting)*fourKB)+dataOffset;
-	if(lseek(disk,(starting_block),SEEK_SET)<0) return -1; //Seek to starting of file
+	if(lseek(disk,starting_block,SEEK_SET)<0) return -1; //Seek to starting of file
 	char* one_block;
 	one_block=(char*)malloc(sizeof(char)*fourKB);
 	//Reading 4KB at a time :
 	for(i=0;i<n_blocks;i++)
 	{
-		if(readData(disk,(dataOffset/fourKB)+i+starting_block,(void*)one_block)<0) return -4;
+		if(readData(disk,dataOffset+(i*fourKB)+starting_block,(void*)one_block) == -1) return -4;
 		memcpy((void*)(block+i*fourKB),(void*)one_block,fourKB); //Adding data to block, 4KB at a time
 	}
 	return 0;
