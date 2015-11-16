@@ -161,7 +161,7 @@ int writeFile(int disk, char* filename, void* block){
 		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
 		jedi=((128)>>(data_space%8)) | jedi; //Setting 'data_space%8'th bit
 		// printf("After : %d\n",jedi);
-		if(lseek(disk,inodeBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
+		if(lseek(disk,dataBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
 		yoda=(char)jedi;
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
 		printf("Fourth checkpoint\n");
@@ -177,7 +177,7 @@ int writeFile(int disk, char* filename, void* block){
 		if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
 		if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
 		printf("Fifth checkpoint\n");
-		
+
 	// //Checking if filename was actually written:
 	// lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET); 
 	// char* holla;
