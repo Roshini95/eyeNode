@@ -65,9 +65,10 @@ int writeData(int disk, int blockNum, void* block){
 
 int writeFile(int disk, char* filename, void* block){
 	//Assume block is 4KB for now
-	int j,i,k,blockNum,bytes_read,data_space;
+	int j,i,k,blockNum,bytes_read,data_space,inode_space;
 	bytes_read=4*1024;
 	data_space=-1;
+	inode_space=-1;
 	char* dataBitmap;
 	blockNum=dataBitmapOffset;
 	dataBitmap=(char*)malloc(sizeof(char*)*bytes_read); //4KB data bitmap
@@ -89,29 +90,37 @@ int writeFile(int disk, char* filename, void* block){
 		}
 	}
 	heaven:
-	if(data_space!=-1)
+	if(data_space==-1) return -3; //No space for data
+	//Find space for inode entry in inode_bitmap
+	char* inodeBitmap;
+	blockNum=inodeBitmapOffset;
+	inodeBitmap=(char*)malloc(sizeof(char*)*bytes_read); //4KB inode bitmap
+	if(lseek(disk,blockNum,SEEK_SET)<0) return -1;
+	if(read(disk,(void*)inodeBitmapOffset,bytes_read)!=bytes_read) return -2;
+	if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
+	for(i=0;i<bytes_read;i++)
 	{
-		//Find space for inode entry in inode_bitmap
-		char* inodeBitmap;
-		blockNum=inodeBitmapOffset;
-		inodeBitmap=(char*)malloc(sizeof(char*)*bytes_read); //4KB inode bitmap
-		if(lseek(disk,blockNum,SEEK_SET)<0) return -1;
-		if(read(disk,(void*)inodeBitmapOffset,bytes_read)!=bytes_read) return -2;
-		if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
-		for(i=0;i<bytes_read;i++)
+		for(j=0;j<8;j++)
 		{
-			for(j=0;j<8;j++)
+			k=(dataBitmap[i]);
+			k=(k>>j)&1;
+			if(k)
 			{
-				k=(dataBitmap[i]);
-				k=(k>>j)&1;
-				if(k)
-				{
-					data_space=(8*i+j);
-					goto heaven; 
-				}
+				inode_space=(8*i+j);
+				goto hell; 
 			}
 		}
 	}	
+	hell:
+	if(inode_space!=-1) return -4; //No space for inode entry
+	//Set inode bitmap to one:
+	if(lseek(disk,0,SEEK_SET)<0) return -1; //Return to starting of HDD
+	if(write(disk,(void*)))
+	//Set data bitmap to one:
+
+	//Write metadata to inode table
+
+	//Write data
 }
 
 int readFile(int disk, char* filename, void* block){
