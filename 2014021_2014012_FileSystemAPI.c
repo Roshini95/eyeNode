@@ -101,10 +101,11 @@ int writeFile(int disk, char* filename, void* block){
 			int isSet = (k >> j) & 1;
 			if (isSet == 0) maxContFound++;
 			else maxContFound = 0;
+			if(maxContFound==block_size) break;
 		}
 	}
 	if (maxContFound >= block_size){
-		data_space = (8 * i + j) - maxContFound;
+		data_space = (8 * i + j) - ( maxContFound - 1);
 		data_space_block = dataBitmap[ data_space / 8];
 	}
 
@@ -140,9 +141,9 @@ int writeFile(int disk, char* filename, void* block){
 		//Set inode bitmap (inode_space)  to one:
 		yoda=inode_space_block;
 		jedi=(int)yoda;
-		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+		printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
 		jedi=((128)>>(inode_space%8)) | jedi; //Setting 'inode_space%8'th bit
-		// printf("After : %d\n",jedi);
+		printf("After : %d\n",jedi);
 		if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
 		yoda=(char)jedi;
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
@@ -158,9 +159,9 @@ int writeFile(int disk, char* filename, void* block){
 		//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
 		yoda=data_space_block;
 		jedi=(int)yoda;
-		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+		printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
 		jedi=((128)>>(data_space%8)) | jedi; //Setting 'data_space%8'th bit
-		// printf("After : %d\n",jedi);
+		printf("After : %d\n",jedi);
 		if(lseek(disk,dataBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
 		yoda=(char)jedi;
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
