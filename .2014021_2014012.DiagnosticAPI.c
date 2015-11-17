@@ -52,8 +52,8 @@ void print_FileList(int fileSystemId)
 	char* inode_map,*inode_data;
 	int fourKB=4*1024;
 	int bytes_read=fourKB*128; //128 blocks for inode
-	inode_map=(char*)malloc(sizeof(char*)*fourKB);
-	inode_data=(char*)malloc(sizeof(char*)*bytes_read);
+	inode_map=(char*)malloc(sizeof(char)*fourKB);
+	inode_data=(char*)malloc(sizeof(char)*bytes_read);
 	if(lseek(fileSystemId,inodeBitmapOffset,SEEK_SET)<0) return; //Error reaching offset
 	if(read(fileSystemId,(void*)inode_map,fourKB) == -1) return; //Error reading from file
 	int i,j,k;
@@ -61,18 +61,18 @@ void print_FileList(int fileSystemId)
 	if(read(fileSystemId,(void*)inode_data,bytes_read) == -1) return; //Error reading second time from file
 	//Print data for non-zero inode entries
 	char* entry;
-	entry=(char*)malloc(sizeof(char*)*16); //Size of an inode entry
-	for(i=0;i<4*1024;i++) 
+	unsigned char read_byte;
+	entry=(char*)malloc(sizeof(char)*16); //Size of an inode entry
+	for(i=0;i<fourKB;i++) 
 	{	
 		for(j=0;j<8;j++)
 		{
-			k=(int)inode_map[i];
-			k=(k>>j)&1;
+			read_byte=inode_map[i];
+			k=(int)read_byte;
+			k=(128>>j)&k;
 			if(k)
 			{
 				//Reading (8i+j)th inode data entry
-
-				//Error idhar hai 
 				memcpy((void*)entry,(void*)(inode_data+(8*i+j)*16),16); //16 bytes per inode entry
 				memcpy((void*)file_name,(void*)(entry),8); //First 8 bytes : filename
 				memcpy((void*)(&starting_block),(void*)(entry+8),2); //Next 2 bytes : starting_block

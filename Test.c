@@ -59,7 +59,7 @@ void main()
 					 scanf("%s",beta);
 					 ret=readFile(file_descriptor,beta,(void*)data);
 					 //Error handling for ret
-					 printf("Data read : \n%s",data);
+					 printf("Data read : \n%s\n",data);
 					 break;
 			default : printf("Invalid option\n");
 
