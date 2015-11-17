@@ -99,7 +99,7 @@ int writeFile(int disk, char* filename, void* block){
 		// printf("Data Bitmap%s\n", (char*)dataBitmap);
 		return -2;
 	}
-	printf("First checkpoint\n");
+	// printf("First checkpoint\n");
 	//Find space in data_bitmap
 	int maxContFound = 0;
 	for(i = 0; i < fourKB; i++)
@@ -126,7 +126,7 @@ int writeFile(int disk, char* filename, void* block){
 	inodeBitmap = (char*)malloc(sizeof(char)*fourKB); //4KB inode bitmap
 	if(lseek(disk,blockNum*fourKB,SEEK_SET) < 0) return -1;
 	if(read(disk,(void*)inodeBitmap,fourKB) == -1) return -2;
-	printf("Second checkpoint\n");
+	// printf("Second checkpoint\n");
 	for(i=0;i<fourKB;i++)
 	{
 		for(j=0;j<8;j++)
@@ -149,13 +149,13 @@ int writeFile(int disk, char* filename, void* block){
 		//Set inode bitmap (inode_space)  to one:
 		yoda=inode_space_block;
 		jedi=(int)yoda;
-		printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
 		jedi=((128)>>(inode_space%8)) | jedi; //Setting 'inode_space%8'th bit
-		printf("After : %d\n",jedi);
+		// printf("After : %d\n",jedi);
 		if(lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET)<0) return -1; 
 		yoda=(char)jedi;
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
-		printf("Third checkpoint\n");
+		// printf("Third checkpoint\n");
 
 	// //Checking if inode bit was actually set
 	// unsigned char into;
@@ -167,13 +167,13 @@ int writeFile(int disk, char* filename, void* block){
 		//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
 		yoda=data_space_block;
 		jedi=(int)yoda;
-		printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
+		// printf("Before : %d, want to %dth bit\n",jedi,(inode_space%8));
 		jedi=((128)>>(data_space%8)) | jedi; //Setting 'data_space%8'th bit
-		printf("After : %d\n",jedi);
+		// printf("After : %d\n",jedi);
 		if(lseek(disk,dataBitmapOffset+(data_space/8),SEEK_SET)<0) return -1; 
 		yoda=(char)jedi;
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; ////Rewriting that whole byte (as it is tedious to rewrite individual bit)
-		printf("Fourth checkpoint\n");
+		// printf("Fourth checkpoint\n");
 
 	// // Checking if inode bit was actually set
 	// unsigned char into;
@@ -185,7 +185,7 @@ int writeFile(int disk, char* filename, void* block){
 		//Write metadata to inode table
 		if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
 		if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
-		printf("Fifth checkpoint\n");
+		// printf("Fifth checkpoint\n");
 
 	// //Checking if filename was actually written:
 	// lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET); 
@@ -200,16 +200,16 @@ int writeFile(int disk, char* filename, void* block){
 	ex=(char*)malloc(sizeof(char)*2);
 	memcpy((void*)ex,(void*)(&data_space),2); //Copying starting block of file (data)
 	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte starting block of file
-	printf("Sixth checkpoint\n");
+	// printf("Sixth checkpoint\n");
 	//free(ex);
 	memcpy((void*)ex,(void*)(&block_size),2); //Copying number of blocks for file (data)
 	if(write(disk,(void*)ex,2)!=2) return -2; //Setting 2 byte size of file (in blocks)
-	printf("Seventh checkpoint\n");
+	// printf("Seventh checkpoint\n");
 	//free(ex);
 	ex=(char*)malloc(sizeof(char)*4);
 	memcpy((void*)ex,(void*)(&actual_size),4); //Copying actual file size (data)
 	if(write(disk,(void*)ex,4)!=4) return -2; //Setting 4 blocks for file size
-	printf("Eigth checkpoint\n");
+	// printf("Eigth checkpoint\n");
 
 	//Write data
 	char* one_block;
@@ -253,7 +253,7 @@ int readFile(int disk, char* filename, void* block){
 			memcpy((void*)(&starting),(void*)(word+8),2);
 			memcpy((void*)(&n_blocks),(void*)(word+10),2);
 			memcpy((void*)(&file_size),(void*)(word+12),4);
-			printf("Starting address : %d\n",starting);
+			printf("Starting block : %d\n",starting);
 			printf("Number of blocks : %d\n",n_blocks);
 			printf("Size of file : %dB\n",file_size);
 			break;
@@ -261,7 +261,7 @@ int readFile(int disk, char* filename, void* block){
 	}	
 	if(!found) return -3;
 	int starting_block=starting+(dataOffset/fourKB); //Block 'number'
-	printf("Starting block %d\n",starting_block);
+	// printf("Starting block %d\n",starting_block);
 	if(lseek(disk,starting_block,SEEK_SET)<0) return -1; //Seek to starting of file
 	char* one_block;
 	one_block=(char*)malloc(sizeof(char)*fourKB);
