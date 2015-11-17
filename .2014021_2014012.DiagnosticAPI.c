@@ -72,7 +72,7 @@ void print_FileList(int fileSystemId)
 			{
 				//Reading (8i+j)th inode data entry
 				memcpy((void*)entry,(void*)(inode_data+(8*i+j)*16),16); //16 bytes per inode entry
-				memcpy((void*)file_name,(void*)entry,8); //First 8 bytes : filename
+				memcpy((void*)file_name,(void*)(entry+0),8); //First 8 bytes : filename
 				memcpy((void*)(&starting_block),(void*)(entry+8),2); //Next 2 bytes : starting_block
 				memcpy((void*)(&number_of_blocks),(void*)(entry+10),2); //Next 2 bytes : number of blocks
 				memcpy((void*)(&file_size),(void*)(entry+12),4); //Next 4 bytes : file size

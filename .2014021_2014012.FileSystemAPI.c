@@ -74,11 +74,16 @@ int writeFile(int disk, char* filename, void* block){
 	 0 : File created successfully
 	*/
 	
-	//Calculate actual_size and block_size by checking block until null (or any other method that works)
-
 	int actual_size,block_size; //Set this equal to the number of blocks required by the given *block.
 	int j,i,k,blockNum,fourKB,data_space,inode_space;
 	fourKB=4*1024;
+	
+	//Needs to be checked :
+	actual_size=0;
+	while(*(char*)(actual_size+block)!=0) actual_size++; 
+	block_size=actual_size/fourKB;
+	if(actual_size%fourKB != 0) block_size++;
+
 	//Temporary :
 	block_size=1;
 	actual_size=fourKB;
