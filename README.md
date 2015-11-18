@@ -1,6 +1,8 @@
 # eyeNode
 A simple file system implemented for CSE231 (Operating Systems) at IIITD, Monsoon 15.
 
+#### Running a test program 
+```gcc Test.c .2014021_2014012.DiagnosticAPI.c .2014021_2014012.FileSystemAPI.c -I. -o to && ./to```
 
 ### Organisation:
 The file system (SFS) is maintained in blocks, with file support. Each file corresponds to a specific inode in the disk.
