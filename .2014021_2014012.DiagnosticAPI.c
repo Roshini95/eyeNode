@@ -63,7 +63,7 @@ void print_FileList(int fileSystemId)
 	char* entry;
 	unsigned char read_byte;
 	entry=(char*)malloc(sizeof(char)*16); //Size of an inode entry
-	for(i=0;i<fourKB;i++) 
+	for(i=0;i<2;i++) 
 	{	
 		for(j=0;j<8;j++)
 		{

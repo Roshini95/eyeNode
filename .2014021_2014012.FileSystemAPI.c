@@ -32,10 +32,10 @@ int createSFS(char* filename, int nbytes){
 		if(err!=1) return -2;
 	}
 	char* super_data;
-	// char sentimental[]="eyeNode SFS\nOne block size : 4KB\nMaximum hard drive(including inode) supported : 128MB\nInode data per file : 16KB (8KB Filename,2KB File head pointer,2KB file block size,4KB file size in Bytes\nFirst data block for Super,second for inode bitmap,third for data bitmap,fourth and 128 others for inode data,rest for normal data\n\0";
-	// super_data=(char*)malloc(sizeof(char)*(strlen(sentimental)+1));
-	// strcpy(super_data,sentimental);
-	// writeData(return_value,0,(void*)super_data);
+	char sentimental[]="eyeNodeSFS";
+	super_data=(char*)malloc(sizeof(char)*(strlen(sentimental)+1));
+	strcpy(super_data,sentimental);
+	writeData(return_value,0,(void*)super_data);
 	return return_value;	
 }
 
@@ -94,7 +94,7 @@ int writeFile(int disk, char* filename, void* block){
 	char* dataBitmap;
 	blockNum=dataBitmapOffset;
 	dataBitmap=(char*)malloc(sizeof(char)*fourKB); //4KB data bitmap
-	if(lseek(disk,blockNum*fourKB,SEEK_SET)<0) return -1;
+	if(lseek(disk,blockNum,SEEK_SET)<0) return -1;
 	if(read(disk,(void*)dataBitmap,fourKB) == -1){
 		// printf("Data Bitmap%s\n", (char*)dataBitmap);
 		return -2;
@@ -106,8 +106,10 @@ int writeFile(int disk, char* filename, void* block){
 	{
 		for(j = 0;j < 8; j++)
 		{
-			k = dataBitmap[i];
-			int isSet = (k >> j) & 1;
+			k = (unsigned char)dataBitmap[i];
+			// printf("Data bitmap is %d\n",k);
+			int isSet = (128 >> j) & k;
+			// printf("IsSet is %d\n",isSet);
 			if (isSet == 0) maxContFound++;
 			else maxContFound = 0;
 			if(maxContFound==block_size)
@@ -117,6 +119,7 @@ int writeFile(int disk, char* filename, void* block){
 				goto heaven;
 			}
 		}
+		break;
 	}
 	heaven:
 	if(data_space == -1) return -3; //No space for data
@@ -124,15 +127,16 @@ int writeFile(int disk, char* filename, void* block){
 	char* inodeBitmap;
 	blockNum = inodeBitmapOffset;
 	inodeBitmap = (char*)malloc(sizeof(char)*fourKB); //4KB inode bitmap
-	if(lseek(disk,blockNum*fourKB,SEEK_SET) < 0) return -1;
+	if(lseek(disk,blockNum,SEEK_SET) < 0) return -1;
 	if(read(disk,(void*)inodeBitmap,fourKB) == -1) return -2;
 	// printf("Second checkpoint\n");
 	for(i=0;i<fourKB;i++)
 	{
 		for(j=0;j<8;j++)
 		{
-			k=(inodeBitmap[i]);
-			k=(k>>j)&1;
+			k=(unsigned char)inodeBitmap[i];
+			// printf("I read %d\n",k);
+			k=(128>>j)&k;
 			if(k==0)
 			{
 				inode_space=(8 * i + j); 
@@ -157,11 +161,11 @@ int writeFile(int disk, char* filename, void* block){
 		if(write(disk,(void*)(&yoda),1)!=1) return -2; //Rewriting that whole byte (as it is tedious to rewrite individual bit)
 		// printf("Third checkpoint\n");
 
-	// //Checking if inode bit was actually set
+	//Checking if inode bit was actually set
 	// unsigned char into;
 	// lseek(disk,inodeBitmapOffset+(inode_space/8),SEEK_SET);
 	// read(disk,(void*)(&into),1);
-	// printf("%d\n",into);
+	// printf("Verified : %d\n",into);
 
 	//TESTED:
 		//Set data bitmap (data_space) to one {for now..need to set all data maps for input data}:
