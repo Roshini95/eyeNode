@@ -37,4 +37,17 @@ Accepts the file descriptor 'disk' and reads 4 KB of data starting at 'blockNum'
 * ```int writeData(int disk, int blockNum, void* block)``` writes that data in the block to the disk block blockNum. 
 Writes data stored in 'block' data buffer at 'blockNum' block of data memory stored in virtual disk pointed by file descriptor 'disk'. Returns appropriate error code.
 
+* ```int writeFile(int disk, char* filename, void* block)```
+Accepts file descriptor 'disk' and creates a new file with 'filename' with data from 'block' buffer.Does not check for existence of files with same name.Returns appropriate error code.
 
+* ``` int readFile(int disk, char* filename, void* block)```
+Accepts file descriptor 'disk' and reads data of file 'filename' into 'block' buffer.Returns appropriate error code.
+
+* ```  void print_inodeBitmaps(int fileSystemId)```
+Prints inode bitmap for SFS with 'fileSystemId' file descriptor virtual-SFS.
+
+* ```   void print_dataBitmaps(int fileSystemId)```
+Prints data bitmap for SFS with 'fileSystemId' file descriptor virtual-SFS.
+
+* ```   void print_FileList(int fileSystemId)```
+Prints list of files (with full metadata for each file) 'fileSystemId' file descriptor virtual-SFS.
