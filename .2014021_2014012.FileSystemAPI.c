@@ -74,19 +74,20 @@ int writeFile(int disk, char* filename, void* block){
 	 0 : File created successfully
 	*/
 	
-	int actual_size,block_size; //Set this equal to the number of blocks required by the given *block.
+	int actual_size,block_size,sixteenB; 
 	int j,i,k,blockNum,fourKB,data_space,inode_space;
 	fourKB=4*1024;
-	
+	sixteenB=16;
+
 	//Needs to be checked :
 	actual_size=0;
 	while(*(char*)(actual_size+block)!=0) actual_size++; 
 	block_size=actual_size/fourKB;
 	if(actual_size%fourKB != 0) block_size++;
 
-	//Temporary :
-	block_size=1;
-	actual_size=fourKB;
+	// //Temporary :
+	// block_size=1;
+	// actual_size=fourKB;
 
 	data_space=-1;
 	char inode_space_block,data_space_block;
@@ -187,7 +188,7 @@ int writeFile(int disk, char* filename, void* block){
 
 	//TESTED : 
 		//Write metadata to inode table
-		if(lseek(disk,inodeDataOffset+inode_space*fourKB,SEEK_SET)<0) return -1;
+		if(lseek(disk,inodeDataOffset+inode_space*sixteenB,SEEK_SET)<0) return -1;
 		if(write(disk,(void*)filename,8)!=8) return -2; //Setting 8 byte filename
 		// printf("Fifth checkpoint\n");
 
@@ -199,7 +200,6 @@ int writeFile(int disk, char* filename, void* block){
 	// int yoy=0;
 	// printf("%s WTAF\n",holla);
 
-	//Assuming write() shifts pointer to end of written block
 	char* ex;
 	ex=(char*)malloc(sizeof(char)*2);
 	memcpy((void*)ex,(void*)(&data_space),2); //Copying starting block of file (data)
@@ -251,6 +251,7 @@ int readFile(int disk, char* filename, void* block){
 		if(lseek(disk,i,SEEK_SET)<0) return -1;
 		if(read(disk,(void*)word,16)!=16) return -2; //4KB Data Block
 		memcpy((void*)name,(void*)word,8); //Extract file name
+		printf("Read : %s\n",name);
 		if(strcmp(name,filename) == 0)
 		{
 			found=1;
