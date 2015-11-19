@@ -53,6 +53,7 @@ void main()
 					 printf("Enter file content\n");
 					 scanf("%s",data);
 					 ret=writeFile(file_descriptor,beta,(void*)data);
+					 printf("Returned %d\n",ret);
 					 //Error handling for ret
 					 break;
 			case 2 : printf("Enter filename\n");
@@ -60,6 +61,7 @@ void main()
 					 ret=readFile(file_descriptor,beta,(void*)data);
 					 //Error handling for ret
 					 printf("Data read : \n%s\n",data);
+					 printf("Returned %d\n",ret);
 					 break;
 			default : printf("Invalid option\n");
 
